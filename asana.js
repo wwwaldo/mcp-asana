@@ -1,6 +1,11 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const ASANA_BASE_URL = 'https://app.asana.com/api/1.0';
 
@@ -27,31 +32,45 @@ const headers = {
 };
 
 // Create Task
-async function createTask(name, notes = '', dueDate = null, assignee = null) {
-  const taskData = {
-    name,
-    notes,
-    projects: [PROJECT_ID],
-  };
+async function createTask(name, notes = '', dueDate = null, assignee = null, projectId = null) {
+  try {
+    const taskData = {
+      name,
+      notes,
+      projects: [projectId || PROJECT_ID],
+    };
 
-  if (dueDate) taskData.due_on = dueDate;
-  if (assignee) taskData.assignee = assignee;
+    if (dueDate) taskData.due_on = dueDate;
+    if (assignee) taskData.assignee = assignee;
 
-  const response = await axios.post(
-    `${ASANA_BASE_URL}/tasks`,
-    { data: taskData },
-    { headers }
-  );
-  return response.data;
+    console.log('Creating task with data:', JSON.stringify(taskData, null, 2));
+    
+    const response = await axios.post(
+      `${ASANA_BASE_URL}/tasks`,
+      { data: taskData },
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error details:', error.response?.data || error.message);
+    throw error;
+  }
 }
 
 // List Tasks
 async function listTasks() {
-  const response = await axios.get(
-    `${ASANA_BASE_URL}/projects/${PROJECT_ID}/tasks`,
-    { headers }
-  );
-  return response.data;
+  try {
+    console.log(`Listing tasks from project ${PROJECT_ID}`);
+    
+    const response = await axios.get(
+      `${ASANA_BASE_URL}/projects/${PROJECT_ID}/tasks`,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error listing tasks:', error.response?.data || error.message);
+    throw error;
+  }
 }
 
 // Update Task
@@ -85,52 +104,11 @@ async function deleteTask(taskId) {
   return { success: true, taskId };
 }
 
-// Export functions for use in MCP server
-module.exports = {
+// Export functions for use in MCP server (ES module style)
+export {
   createTask,
   listTasks,
   updateTask,
   completeTask,
-  deleteTask,
-  
-  // Handlers for External Service
-  createTaskHandler: async (req, res) => {
-    const { name, notes, dueDate, assignee } = req.body;
-    try {
-      const task = await createTask(name, notes, dueDate, assignee);
-      res.json(task);
-    } catch (err) {
-      res.status(err.response?.status || 500).json(err.response?.data || err);
-    }
-  },
-
-  listTasksHandler: async (req, res) => {
-    try {
-      const tasks = await listTasks();
-      res.json(tasks);
-    } catch (err) {
-      res.status(err.response?.status || 500).json(err.response?.data || err);
-    }
-  },
-
-  updateTaskHandler: async (req, res) => {
-    const { taskId } = req.params;
-    const updatedFields = req.body;
-    try {
-      const task = await updateTask(taskId, updatedFields);
-      res.json(task);
-    } catch (err) {
-      res.status(err.response?.status || 500).json(err.response?.data || err);
-    }
-  },
-
-  completeTaskHandler: async (req, res) => {
-    const { taskId } = req.params;
-    try {
-      const task = await completeTask(taskId);
-      res.json(task);
-    } catch (err) {
-      res.status(err.response?.status || 500).json(err.response?.data || err);
-    }
-  },
+  deleteTask
 };

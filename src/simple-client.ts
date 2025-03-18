@@ -74,6 +74,8 @@ async function main() {
   } finally {
     // Kill the server process
     serverProcess.kill();
+    // Explicitly exit the process
+    process.exit(0);
   }
 }
 

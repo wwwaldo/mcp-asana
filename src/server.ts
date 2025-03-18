@@ -10,15 +10,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import the Asana API functions
-// We need to dynamically import since we're using ESM and the asana.js file uses CommonJS
 let asanaApi: any = null;
 
 async function loadAsanaApi() {
   try {
-    // Use createRequire to import CommonJS modules in ESM
-    const { createRequire } = await import('module');
-    const require = createRequire(import.meta.url);
-    asanaApi = require('../asana.js');
+    // Import the ES module version of asana.js
+    asanaApi = await import('../asana.js');
     console.log("Asana API loaded successfully");
   } catch (error: any) {
     console.error("Error loading Asana API:", error.message);
@@ -52,7 +49,7 @@ server.tool(
     try {
       if (asanaApi) {
         // Call the actual Asana API
-        const result = await asanaApi.createTask(name, description, dueDate, assignee);
+        const result = await asanaApi.createTask(name, description, dueDate, assignee, project);
         console.log("Task created with ID:", result.data.gid);
         
         return {
