@@ -2,33 +2,51 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables from .env file
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
 const ASANA_BASE_URL = 'https://app.asana.com/api/1.0';
 
-// Try to read token from file if not in environment variable
+// Get configuration from environment variables
 let ASANA_ACCESS_TOKEN = process.env.ASANA_ACCESS_TOKEN;
+let PROJECT_ID = process.env.ASANA_PROJECT_ID;
+let WORKSPACE_ID = process.env.ASANA_WORKSPACE_ID;
 
-if (!ASANA_ACCESS_TOKEN) {
-  try {
-    const tokenPath = path.join(__dirname, '..', 'asana.token');
-    if (fs.existsSync(tokenPath)) {
-      ASANA_ACCESS_TOKEN = fs.readFileSync(tokenPath, 'utf8').trim();
-      console.log('Using token from asana.token file');
-    }
-  } catch (err) {
-    console.error('Error reading token file:', err.message);
-  }
+// Log configuration source
+if (ASANA_ACCESS_TOKEN) {
+  console.log('Using Asana token from environment variables');
 }
 
-// Default project ID (Claudeject)
-const PROJECT_ID = 1209708771942231;
+if (PROJECT_ID) {
+  console.log(`Using project ID from environment variables: ${PROJECT_ID}`);
+}
 
-// Default workspace ID
-const WORKSPACE_ID = 1201956770127069;
+if (WORKSPACE_ID) {
+  console.log(`Using workspace ID from environment variables: ${WORKSPACE_ID}`);
+}
+
+// Default values if not provided
+if (!PROJECT_ID) {
+  console.warn('No project ID specified. Some task operations may fail without a project ID.');
+  PROJECT_ID = null;
+}
+
+if (!WORKSPACE_ID) {
+  console.warn('No workspace ID specified. Some project operations may fail without a workspace ID.');
+  WORKSPACE_ID = null;
+}
+
+// Validate token
+if (!ASANA_ACCESS_TOKEN) {
+  console.error('Error: No Asana access token found. Please set ASANA_ACCESS_TOKEN in your .env file.');
+  // Don't exit here, as this would prevent the server from starting with stub implementations
+}
 
 // Get headers for Asana API requests
 function getHeaders() {

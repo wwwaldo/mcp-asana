@@ -21,6 +21,7 @@
     "@modelcontextprotocol/sdk": "^1.7.0",
     "axios": "^1.8.3",
     "commander": "^11.1.0",
+    "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "zod": "^3.24.2"
   },

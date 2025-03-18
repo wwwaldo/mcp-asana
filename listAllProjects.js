@@ -4,68 +4,82 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables from .env file
+dotenv.config();
+
 const ASANA_BASE_URL = 'https://app.asana.com/api/1.0';
 
-// Try to read token from file if not in environment variable
+// Get Asana access token
 let ASANA_ACCESS_TOKEN = process.env.ASANA_ACCESS_TOKEN;
+let WORKSPACE_ID = process.env.ASANA_WORKSPACE_ID;
 
 if (!ASANA_ACCESS_TOKEN) {
-  try {
-    const tokenPath = path.join(__dirname, 'asana.token');
-    if (fs.existsSync(tokenPath)) {
-      ASANA_ACCESS_TOKEN = fs.readFileSync(tokenPath, 'utf8').trim();
-      console.log('Using token from asana.token file');
-    }
-  } catch (err) {
-    console.error('Error reading token file:', err.message);
-  }
-}
-
-if (!ASANA_ACCESS_TOKEN) {
-  console.error('Please set your ASANA_ACCESS_TOKEN environment variable or create an asana.token file.');
+  console.error('Error: No Asana access token found.');
+  console.error('Please set your ASANA_ACCESS_TOKEN in your .env file.');
   process.exit(1);
 }
 
+// Get headers for Asana API requests
+function getHeaders() {
+  return {
+    Authorization: `Bearer ${ASANA_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+// List all projects
 async function listAllProjects() {
   try {
-    console.log('Fetching projects from Asana...');
-    
+    // If no workspace ID is provided, list workspaces first
+    if (!WORKSPACE_ID) {
+      console.log('No workspace ID provided. Fetching workspaces first...');
+      const workspacesResponse = await axios.get(`${ASANA_BASE_URL}/workspaces`, {
+        headers: getHeaders(),
+      });
+      
+      const workspaces = workspacesResponse.data.data;
+      console.log('Available workspaces:');
+      workspaces.forEach((workspace) => {
+        console.log(`ID: ${workspace.gid}, Name: ${workspace.name}`);
+      });
+      
+      if (workspaces.length > 0) {
+        WORKSPACE_ID = workspaces[0].gid;
+        console.log(`\nUsing workspace ID: ${WORKSPACE_ID} (${workspaces[0].name})`);
+      } else {
+        console.error('No workspaces found. Please create a workspace in Asana first.');
+        process.exit(1);
+      }
+    }
+
+    console.log(`\nFetching projects from workspace ${WORKSPACE_ID}...`);
     const response = await axios.get(`${ASANA_BASE_URL}/projects`, {
-      headers: {
-        Authorization: `Bearer ${ASANA_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
+      headers: getHeaders(),
+      params: {
+        workspace: WORKSPACE_ID,
       },
     });
 
-    const projects = response.data.data;
-    
-    if (projects.length === 0) {
-      console.log('No projects found.');
-      return;
-    }
-    
     console.log('\nProjects:');
-    console.log('=========');
-    projects.forEach((project) => {
-      console.log(`Project: ${project.name} | ID: ${project.gid}`);
+    response.data.data.forEach((project) => {
+      console.log(`ID: ${project.gid}, Name: ${project.name}`);
     });
-    console.log('\nTotal projects:', projects.length);
-  } catch (err) {
-    if (err.response) {
-      console.error('Error fetching projects:', err.response.status, err.response.statusText);
-      console.error('Error details:', JSON.stringify(err.response.data, null, 2));
-    } else if (err.request) {
-      console.error('Error: No response received from Asana API');
-    } else {
-      console.error('Error:', err.message);
-    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Error listing projects:', error.response?.data || error.message);
+    throw error;
   }
 }
 
-// Execute the function
-listAllProjects();
+// Run the function
+listAllProjects().catch((error) => {
+  console.error('Failed to list projects:', error);
+  process.exit(1);
+});
