@@ -15,6 +15,9 @@ async function main() {
         console.log("  node dist/simple-client.js list-tasks [\"ProjectId\"]");
         console.log("  node dist/simple-client.js update-task \"TaskId\" \"New Name\" \"New Description\" \"New Due Date\" \"New Assignee\" \"true|false\"");
         console.log("  node dist/simple-client.js delete-task \"TaskId\"");
+        console.log("  node dist/simple-client.js create-project \"Project Name\" [\"Notes\"] [\"Color\"] [\"Is Public\"]");
+        console.log("  node dist/simple-client.js list-projects [\"WorkspaceId\"]");
+        console.log("  node dist/simple-client.js delete-project \"ProjectId\"");
         process.exit(1);
     }
     const command = args[0];
@@ -52,6 +55,15 @@ async function main() {
                 break;
             case "delete-task":
                 await deleteTask(client, args);
+                break;
+            case "create-project":
+                await createProject(client, args);
+                break;
+            case "list-projects":
+                await listProjects(client, args);
+                break;
+            case "delete-project":
+                await deleteProject(client, args);
                 break;
             default:
                 console.error(`Unknown command: ${command}`);
@@ -119,6 +131,47 @@ async function deleteTask(client, args) {
         name: "delete-task",
         arguments: {
             taskId: args[1]
+        }
+    });
+    console.log("Result:", JSON.stringify(result, null, 2));
+}
+async function createProject(client, args) {
+    console.log("Creating project...");
+    const result = await client.callTool({
+        name: "create-project",
+        arguments: {
+            name: args[1],
+            notes: args[2] || "",
+            color: args[3] || null,
+            isPublic: args[4] === "true" ? true : args[4] === "false" ? false : undefined
+        }
+    });
+    console.log("Result:", JSON.stringify(result, null, 2));
+}
+async function listProjects(client, args) {
+    console.log("Listing projects...");
+    const result = await client.callTool({
+        name: "list-projects",
+        arguments: {
+            workspaceId: args[1] || null
+        }
+    });
+    // Type assertion to handle the response content
+    if (result.content && Array.isArray(result.content) && result.content.length > 0 &&
+        typeof result.content[0] === 'object' && result.content[0] !== null &&
+        'text' in result.content[0]) {
+        console.log(result.content[0].text);
+    }
+    else {
+        console.log("No projects found or unexpected response format");
+    }
+}
+async function deleteProject(client, args) {
+    console.log("Deleting project...");
+    const result = await client.callTool({
+        name: "delete-project",
+        arguments: {
+            projectId: args[1]
         }
     });
     console.log("Result:", JSON.stringify(result, null, 2));

@@ -11,7 +11,7 @@ let asanaApi = null;
 async function loadAsanaApi() {
     try {
         // Import the ES module version of asana.js
-        asanaApi = await import('../asana.js');
+        asanaApi = await import('../asana/index.js');
         console.log("Asana API loaded successfully");
     }
     catch (error) {
@@ -193,46 +193,211 @@ server.tool("update-task", {
         };
     }
 });
-// Define tool for deleting an Asana task
+// Define tool for deleting a task
 server.tool("delete-task", {
     taskId: z.string()
 }, async ({ taskId }) => {
-    console.log(`Deleting Asana task: ${taskId}`);
+    console.log(`Deleting task: ${taskId}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
             await asanaApi.deleteTask(taskId);
             console.log("Task deleted successfully");
             return {
-                content: [{
+                content: [
+                    {
                         type: "text",
                         text: `Task ${taskId} deleted successfully`
-                    }]
+                    }
+                ]
             };
         }
         else {
             // Stub implementation
+            console.log("Using stub implementation for delete-task");
             return {
-                content: [{
+                content: [
+                    {
                         type: "text",
-                        text: `Task ${taskId} deleted successfully (stub)`
-                    }]
+                        text: `Task ${taskId} deleted successfully (stub implementation)`
+                    }
+                ]
             };
         }
     }
     catch (error) {
-        console.error("Error deleting task:", error);
+        console.error("Error deleting task:", error.message);
         return {
-            content: [{
+            content: [
+                {
                     type: "text",
-                    text: `Error deleting task: ${error.message || 'Unknown error'}`
-                }]
+                    text: `Error deleting task: ${error.message}`
+                }
+            ]
+        };
+    }
+});
+// Define tool for creating a new project
+server.tool("create-project", {
+    name: z.string(),
+    notes: z.string().optional(),
+    color: z.string().optional(),
+    isPublic: z.boolean().optional()
+}, async ({ name, notes, color, isPublic }) => {
+    console.log(`Creating Asana project: ${name}`);
+    console.log(`Notes: ${notes || 'N/A'}`);
+    console.log(`Color: ${color || 'N/A'}`);
+    console.log(`Public: ${isPublic !== undefined ? isPublic : 'N/A'}`);
+    try {
+        if (asanaApi) {
+            // Call the actual Asana API
+            const result = await asanaApi.createProject(name, notes, color, isPublic);
+            console.log("Project created with ID:", result.data.gid);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Project "${name}" created successfully with ID: ${result.data.gid}`
+                    }
+                ]
+            };
+        }
+        else {
+            // Stub implementation
+            console.log("Using stub implementation for create-project");
+            const projectId = Math.floor(Math.random() * 10000000000);
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Project "${name}" created successfully with ID: ${projectId} (stub implementation)`
+                    }
+                ]
+            };
+        }
+    }
+    catch (error) {
+        console.error("Error creating project:", error.message);
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: `Error creating project: ${error.message}`
+                }
+            ]
+        };
+    }
+});
+// Define tool for deleting a project
+server.tool("delete-project", {
+    projectId: z.string()
+}, async ({ projectId }) => {
+    console.log(`Deleting project: ${projectId}`);
+    try {
+        if (asanaApi) {
+            // Call the actual Asana API
+            await asanaApi.deleteProject(projectId);
+            console.log("Project deleted successfully");
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Project ${projectId} deleted successfully`
+                    }
+                ]
+            };
+        }
+        else {
+            // Stub implementation
+            console.log("Using stub implementation for delete-project");
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Project ${projectId} deleted successfully (stub implementation)`
+                    }
+                ]
+            };
+        }
+    }
+    catch (error) {
+        console.error("Error deleting project:", error.message);
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: `Error deleting project: ${error.message}`
+                }
+            ]
+        };
+    }
+});
+// Define tool for listing projects
+server.tool("list-projects", {
+    workspaceId: z.string().optional().nullable()
+}, async ({ workspaceId }) => {
+    console.log(`Listing projects${workspaceId ? ` in workspace ${workspaceId}` : ''}`);
+    try {
+        if (asanaApi) {
+            // Call the actual Asana API
+            const result = await asanaApi.listProjects(workspaceId);
+            console.log(`Found ${result.data?.length || 0} projects`);
+            // Format projects for display
+            if (result.data && result.data.length > 0) {
+                // Create a markdown table
+                let markdown = "## Projects\n\n";
+                markdown += "| ID | Name | Notes |\n";
+                markdown += "|---|------|-------|\n";
+                result.data.forEach((project) => {
+                    markdown += `| ${project.gid} | ${project.name} | ${project.notes ? project.notes.substring(0, 50) + (project.notes.length > 50 ? '...' : '') : 'No notes'} |\n`;
+                });
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: markdown
+                        }
+                    ]
+                };
+            }
+            else {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: "## Projects\n\nNo projects found."
+                        }
+                    ]
+                };
+            }
+        }
+        else {
+            // Stub implementation
+            console.log("Using stub implementation for list-projects");
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: "## Projects\n\nNo projects found (stub implementation)."
+                    }
+                ]
+            };
+        }
+    }
+    catch (error) {
+        console.error("Error listing projects:", error.message);
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: `Error listing projects: ${error.message}`
+                }
+            ]
         };
     }
 });
 // Function to start the server with stdio transport (for command-line usage)
 async function startStdioServer() {
-    // Load the Asana API
     await loadAsanaApi();
     const transport = new StdioServerTransport();
     // Add debug logging
@@ -247,7 +412,7 @@ async function startStdioServer() {
     });
     await server.connect(transport);
     console.log("MCP Asana server running with stdio transport");
-    console.log("Use tools: create-task, list-tasks, update-task, delete-task");
+    console.log("Use tools: create-task, list-tasks, update-task, delete-task, create-project, list-projects, delete-project");
 }
 // Determine which transport to use based on command-line arguments
 if (process.argv.includes("--http")) {
