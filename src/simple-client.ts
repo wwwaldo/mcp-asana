@@ -28,12 +28,15 @@ async function main() {
   
   // Start the server as a separate process
   const serverPath = path.join(__dirname, "..", "dist", "server.js");
-  const serverProcess = spawn("node", [serverPath]);
+  const serverProcess = spawn("node", [serverPath], {
+    env: process.env // Pass the environment variables to the server process
+  });
   
   // Create a transport that connects to the server process
   const transport = new StdioClientTransport({
     command: "node",
-    args: [serverPath]
+    args: [serverPath],
+    env: process.env as Record<string, string> // Cast to the expected type
   });
   
   // Create the client

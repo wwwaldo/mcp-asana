@@ -30,5 +30,11 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
+# Check if .env file exists and source it
+if [ -f .env ]; then
+  echo "Loading environment variables from .env file..."
+  export $(grep -v '^#' .env | xargs)
+fi
+
 # Execute the client
 node dist/simple-client.js "$@"
