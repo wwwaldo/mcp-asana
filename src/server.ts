@@ -448,6 +448,292 @@ server.tool(
   }
 );
 
+// Define tool for creating sections
+server.tool(
+  "create-section",
+  {
+    projectId: z.string(),
+    name: z.string(),
+    insertBefore: z.string().optional(),
+    insertAfter: z.string().optional()
+  },
+  async ({ projectId, name, insertBefore, insertAfter }) => {
+    console.debug(`Creating section "${name}" in project ${projectId}`);
+    if (insertBefore) console.debug(`Insert before: ${insertBefore}`);
+    if (insertAfter) console.debug(`Insert after: ${insertAfter}`);
+    
+    try {
+      if (asanaApi) {
+        // Call the actual Asana API
+        const result = await asanaApi.createSection(projectId, name, insertBefore, insertAfter);
+        console.debug("Section created with ID:", result.data.gid);
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Section "${name}" created successfully in project ${projectId} with ID: ${result.data.gid}`
+            }
+          ]
+        };
+      } else {
+        // Stub implementation
+        console.debug("Using stub implementation for create-section");
+        const sectionId = Math.floor(Math.random() * 10000000000);
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Section "${name}" created successfully in project ${projectId} with ID: ${sectionId} (stub implementation)`
+            }
+          ]
+        };
+      }
+    } catch (error: any) {
+      console.debug("Error creating section:", error);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error creating section: ${error.message || error.originalResponse?.errors?.[0]?.message || 'Unknown error'}`
+          }
+        ]
+      };
+    }
+  }
+);
+
+// Define tool for adding a task to a section
+server.tool(
+  "add-task-to-section",
+  {
+    sectionId: z.string(),
+    taskId: z.string()
+  },
+  async ({ sectionId, taskId }) => {
+    console.debug(`Adding task ${taskId} to section ${sectionId}`);
+    
+    try {
+      if (asanaApi) {
+        // Call the actual Asana API
+        const result = await asanaApi.addTaskToSection(sectionId, taskId);
+        console.debug("Task added to section successfully");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Task ${taskId} added to section ${sectionId} successfully`
+            }
+          ]
+        };
+      } else {
+        // Stub implementation
+        console.debug("Using stub implementation for add-task-to-section");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Task ${taskId} added to section ${sectionId} successfully (stub implementation)`
+            }
+          ]
+        };
+      }
+    } catch (error: any) {
+      console.debug("Error adding task to section:", error);
+      
+      // Re-throw the error as a response
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error adding task to section: ${error.message || error.originalResponse?.errors?.[0]?.message || 'Unknown error'}`
+          }
+        ]
+      };
+    }
+  }
+);
+
+// Define tool for adding dependencies to a task
+server.tool(
+  "add-dependencies",
+  {
+    taskId: z.string(),
+    dependencyIds: z.array(z.string())
+  },
+  async ({ taskId, dependencyIds }) => {
+    console.debug(`Adding dependencies ${dependencyIds.join(', ')} to task ${taskId}`);
+    
+    try {
+      if (asanaApi) {
+        // Call the actual Asana API
+        const result = await asanaApi.addDependenciesToTask(taskId, dependencyIds);
+        console.debug("Dependencies added successfully");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Dependencies ${dependencyIds.join(', ')} added to task ${taskId} successfully`
+            }
+          ]
+        };
+      } else {
+        // Stub implementation
+        console.debug("Using stub implementation for add-dependencies");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Dependencies ${dependencyIds.join(', ')} added to task ${taskId} successfully (stub implementation)`
+            }
+          ]
+        };
+      }
+    } catch (error: any) {
+      console.debug("Error adding dependencies to task:", error);
+      
+      // Re-throw the error as a response
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error adding dependencies to task: ${error.message || error.originalResponse?.errors?.[0]?.message || 'Unknown error'}`
+          }
+        ]
+      };
+    }
+  }
+);
+
+// Define tool for removing dependencies from a task
+server.tool(
+  "remove-dependencies",
+  {
+    taskId: z.string(),
+    dependencyIds: z.array(z.string())
+  },
+  async ({ taskId, dependencyIds }) => {
+    console.debug(`Removing dependencies ${dependencyIds.join(', ')} from task ${taskId}`);
+    
+    try {
+      if (asanaApi) {
+        // Call the actual Asana API
+        const result = await asanaApi.removeDependenciesFromTask(taskId, dependencyIds);
+        console.debug("Dependencies removed successfully");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Dependencies ${dependencyIds.join(', ')} removed from task ${taskId} successfully`
+            }
+          ]
+        };
+      } else {
+        // Stub implementation
+        console.debug("Using stub implementation for remove-dependencies");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Dependencies ${dependencyIds.join(', ')} removed from task ${taskId} successfully (stub implementation)`
+            }
+          ]
+        };
+      }
+    } catch (error: any) {
+      console.debug("Error removing dependencies from task:", error);
+      
+      // Re-throw the error as a response
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error removing dependencies from task: ${error.message || error.originalResponse?.errors?.[0]?.message || 'Unknown error'}`
+          }
+        ]
+      };
+    }
+  }
+);
+
+// Define tool for getting dependencies for a task
+server.tool(
+  "get-dependencies",
+  {
+    taskId: z.string()
+  },
+  async ({ taskId }) => {
+    console.debug(`Getting dependencies for task ${taskId}`);
+    
+    try {
+      if (asanaApi) {
+        // Call the actual Asana API
+        const result = await asanaApi.getDependenciesForTask(taskId);
+        console.debug("Dependencies retrieved successfully:", result.data);
+        
+        // Format the dependencies for display
+        const dependencies = result.data.map((dep: any) => ({
+          id: dep.gid,
+          name: dep.name,
+          completed: dep.completed
+        }));
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Dependencies for task ${taskId}:`
+            },
+            {
+              type: "text",
+              text: JSON.stringify(dependencies, null, 2)
+            }
+          ]
+        };
+      } else {
+        // Stub implementation
+        console.debug("Using stub implementation for get-dependencies");
+        
+        return {
+          content: [
+            { 
+              type: "text", 
+              text: `Dependencies for task ${taskId} (stub implementation):`
+            },
+            {
+              type: "text",
+              text: JSON.stringify([
+                { id: "12345", name: "Stub dependency 1", completed: false },
+                { id: "67890", name: "Stub dependency 2", completed: true }
+              ], null, 2)
+            }
+          ]
+        };
+      }
+    } catch (error: any) {
+      console.debug("Error getting dependencies for task:", error);
+      
+      // Re-throw the error as a response
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error getting dependencies for task: ${error.message || error.originalResponse?.errors?.[0]?.message || 'Unknown error'}`
+          }
+        ]
+      };
+    }
+  }
+);
+
 // Function to start the server with stdio transport (for command-line usage)
 async function startStdioServer() {
   await loadAsanaApi();
@@ -466,7 +752,7 @@ async function startStdioServer() {
   
   await server.connect(transport);
   console.debug("MCP Asana server running with stdio transport");
-  console.debug("Use tools: create-task, list-tasks, update-task, delete-task, create-project, list-projects, delete-project");
+  console.debug("Use tools: create-task, list-tasks, update-task, delete-task, create-project, list-projects, delete-project, create-section, add-task-to-section, add-dependencies, remove-dependencies, get-dependencies");
 }
 
 // Determine which transport to use based on command-line arguments

@@ -149,5 +149,136 @@ program
         process.exit(1);
     }
 });
+// Command to create a section
+program
+    .command("create-section")
+    .description("Create a new section in an Asana project")
+    .requiredOption("--project-id <projectId>", "ID of the project to create the section in")
+    .requiredOption("--name <n>", "Name of the section")
+    .option("--insert-before <insertBefore>", "ID of the section to insert this section before")
+    .option("--insert-after <insertAfter>", "ID of the section to insert this section after")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        console.log("Creating section...");
+        const result = await client.callTool({
+            name: "create-section",
+            arguments: {
+                projectId: options.projectId,
+                name: options.name,
+                insertBefore: options.insertBefore,
+                insertAfter: options.insertAfter
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
+// Command to add a task to a section
+program
+    .command("add-task-to-section")
+    .description("Add a task to a section in Asana")
+    .requiredOption("--section-id <sectionId>", "ID of the section to add the task to")
+    .requiredOption("--task-id <taskId>", "ID of the task to add to the section")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        console.log("Adding task to section...");
+        const result = await client.callTool({
+            name: "add-task-to-section",
+            arguments: {
+                sectionId: options.sectionId,
+                taskId: options.taskId
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
+// Command to add dependencies to a task
+program
+    .command("add-dependencies")
+    .description("Add dependencies to a task in Asana")
+    .requiredOption("--task-id <taskId>", "ID of the task to add dependencies to")
+    .requiredOption("--dependency-ids <dependencyIds>", "Comma-separated list of task IDs that the task depends on")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        // Parse the comma-separated list of dependency IDs
+        const dependencyIds = options.dependencyIds?.split(',') || [];
+        console.log("Adding dependencies to task...");
+        const result = await client.callTool({
+            name: "add-dependencies",
+            arguments: {
+                taskId: options.taskId,
+                dependencyIds
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
+// Command to remove dependencies from a task
+program
+    .command("remove-dependencies")
+    .description("Remove dependencies from a task in Asana")
+    .requiredOption("--task-id <taskId>", "ID of the task to remove dependencies from")
+    .requiredOption("--dependency-ids <dependencyIds>", "Comma-separated list of task IDs to remove as dependencies")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        // Parse the comma-separated list of dependency IDs
+        const dependencyIds = options.dependencyIds?.split(',') || [];
+        console.log("Removing dependencies from task...");
+        const result = await client.callTool({
+            name: "remove-dependencies",
+            arguments: {
+                taskId: options.taskId,
+                dependencyIds
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
+// Command to get dependencies for a task
+program
+    .command("get-dependencies")
+    .description("Get dependencies for a task in Asana")
+    .requiredOption("--task-id <taskId>", "ID of the task to get dependencies for")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        console.log("Getting dependencies for task...");
+        const result = await client.callTool({
+            name: "get-dependencies",
+            arguments: {
+                taskId: options.taskId
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
 // Parse command-line arguments
 program.parse();
