@@ -17,7 +17,7 @@ async function createTask(name, notes = '', dueDate = null, assignee = null, pro
     if (dueDate) taskData.due_on = dueDate;
     if (assignee) taskData.assignee = assignee;
 
-    console.log('Creating task with data:', JSON.stringify(taskData, null, 2));
+    console.debug('Creating task with data:', JSON.stringify(taskData, null, 2));
     
     const response = await axios.post(
       `${ASANA_BASE_URL}/tasks`,
@@ -26,7 +26,7 @@ async function createTask(name, notes = '', dueDate = null, assignee = null, pro
     );
     return response.data;
   } catch (error) {
-    console.error('Error details:', error.response?.data || error.message);
+    console.debug('Error details:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -35,7 +35,7 @@ async function createTask(name, notes = '', dueDate = null, assignee = null, pro
 async function listTasks(projectId = null) {
   try {
     const targetProjectId = projectId || PROJECT_ID;
-    console.log(`Listing tasks from project ${targetProjectId}`);
+    console.debug(`Listing tasks from project ${targetProjectId}`);
     
     const response = await axios.get(
       `${ASANA_BASE_URL}/projects/${targetProjectId}/tasks`,
@@ -43,7 +43,7 @@ async function listTasks(projectId = null) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error listing tasks:', error.response?.data || error.message);
+    console.debug('Error listing tasks:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -51,7 +51,7 @@ async function listTasks(projectId = null) {
 // Update Task
 async function updateTask(taskId, updatedFields) {
   try {
-    console.log(`Updating task ${taskId} with data:`, JSON.stringify(updatedFields, null, 2));
+    console.debug(`Updating task ${taskId} with data:`, JSON.stringify(updatedFields, null, 2));
     
     const response = await axios.put(
       `${ASANA_BASE_URL}/tasks/${taskId}`,
@@ -60,7 +60,7 @@ async function updateTask(taskId, updatedFields) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error updating task:', error.response?.data || error.message);
+    console.debug('Error updating task:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -68,7 +68,7 @@ async function updateTask(taskId, updatedFields) {
 // Complete Task
 async function completeTask(taskId) {
   try {
-    console.log(`Completing task ${taskId}`);
+    console.debug(`Completing task ${taskId}`);
     
     const response = await axios.put(
       `${ASANA_BASE_URL}/tasks/${taskId}`,
@@ -79,7 +79,7 @@ async function completeTask(taskId) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error completing task:', error.response?.data || error.message);
+    console.debug('Error completing task:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -87,7 +87,7 @@ async function completeTask(taskId) {
 // Delete Task
 async function deleteTask(taskId) {
   try {
-    console.log(`Deleting task ${taskId}`);
+    console.debug(`Deleting task ${taskId}`);
     
     const response = await axios.delete(
       `${ASANA_BASE_URL}/tasks/${taskId}`,
@@ -95,7 +95,7 @@ async function deleteTask(taskId) {
     );
     return { success: true, taskId };
   } catch (error) {
-    console.error('Error deleting task:', error.response?.data || error.message);
+    console.debug('Error deleting task:', error.response?.data || error.message);
     throw error;
   }
 }

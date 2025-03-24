@@ -13,16 +13,26 @@ import { getHeaders, ASANA_BASE_URL, WORKSPACE_ID } from './config.js';
  */
 async function createProject(name, notes = '', color = null, isPublic = true, workspaceId = null) {
   try {
+    const targetWorkspaceId = workspaceId || WORKSPACE_ID;
+    
+    // Validate required parameters
+    if (!name) {
+      throw new Error('Project name is required');
+    }
+    
+    if (!targetWorkspaceId) {
+      throw new Error('Workspace ID is required. Set ASANA_WORKSPACE_ID in .env or pass it as a parameter');
+    }
+    
     const projectData = {
       name,
       notes,
-      workspace: workspaceId || WORKSPACE_ID,
-      public: isPublic
+      workspace: targetWorkspaceId
     };
 
     if (color) projectData.color = color;
 
-    console.log('Creating project with data:', JSON.stringify(projectData, null, 2));
+    console.debug('Creating project with data:', JSON.stringify(projectData, null, 2));
     
     const response = await axios.post(
       `${ASANA_BASE_URL}/projects`,
@@ -31,7 +41,21 @@ async function createProject(name, notes = '', color = null, isPublic = true, wo
     );
     return response.data;
   } catch (error) {
-    console.error('Error creating project:', error.response?.data || error.message);
+    console.debug('Error creating project:', error.response?.data || error.message);
+    if (error.response) {
+      console.debug('Response status:', error.response.status);
+      console.debug('Response data:', JSON.stringify(error.response.data, null, 2));
+      
+      // Create a more detailed error message that includes the Asana API error details
+      const errorDetails = error.response.data?.errors?.[0]?.message || JSON.stringify(error.response.data);
+      const detailedError = new Error(`Asana API Error (${error.response.status}): ${errorDetails}`);
+      
+      // Attach the original error response for reference
+      detailedError.originalResponse = error.response.data;
+      detailedError.status = error.response.status;
+      
+      throw detailedError;
+    }
     throw error;
   }
 }
@@ -43,7 +67,7 @@ async function createProject(name, notes = '', color = null, isPublic = true, wo
  */
 async function deleteProject(projectId) {
   try {
-    console.log(`Deleting project ${projectId}`);
+    console.debug(`Deleting project ${projectId}`);
     
     const response = await axios.delete(
       `${ASANA_BASE_URL}/projects/${projectId}`,
@@ -51,7 +75,7 @@ async function deleteProject(projectId) {
     );
     return { success: true, projectId };
   } catch (error) {
-    console.error('Error deleting project:', error.response?.data || error.message);
+    console.debug('Error deleting project:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -64,7 +88,7 @@ async function deleteProject(projectId) {
 async function listProjects(workspaceId = null) {
   try {
     const targetWorkspaceId = workspaceId || WORKSPACE_ID;
-    console.log(`Listing projects in workspace ${targetWorkspaceId}`);
+    console.debug(`Listing projects in workspace ${targetWorkspaceId}`);
     
     const response = await axios.get(
       `${ASANA_BASE_URL}/workspaces/${targetWorkspaceId}/projects`,
@@ -72,7 +96,7 @@ async function listProjects(workspaceId = null) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error listing projects:', error.response?.data || error.message);
+    console.debug('Error listing projects:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -84,7 +108,7 @@ async function listProjects(workspaceId = null) {
  */
 async function getProject(projectId) {
   try {
-    console.log(`Getting project ${projectId}`);
+    console.debug(`Getting project ${projectId}`);
     
     const response = await axios.get(
       `${ASANA_BASE_URL}/projects/${projectId}`,
@@ -92,7 +116,7 @@ async function getProject(projectId) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error getting project:', error.response?.data || error.message);
+    console.debug('Error getting project:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -105,7 +129,7 @@ async function getProject(projectId) {
  */
 async function updateProject(projectId, updatedFields) {
   try {
-    console.log(`Updating project ${projectId} with data:`, JSON.stringify(updatedFields, null, 2));
+    console.debug(`Updating project ${projectId} with data:`, JSON.stringify(updatedFields, null, 2));
     
     const response = await axios.put(
       `${ASANA_BASE_URL}/projects/${projectId}`,
@@ -114,7 +138,7 @@ async function updateProject(projectId, updatedFields) {
     );
     return response.data;
   } catch (error) {
-    console.error('Error updating project:', error.response?.data || error.message);
+    console.debug('Error updating project:', error.response?.data || error.message);
     throw error;
   }
 }

@@ -81,11 +81,11 @@ async function main() {
         await deleteProject(client, args);
         break;
       default:
-        console.error(`Unknown command: ${command}`);
+        console.debug(`Unknown command: ${command}`);
         process.exit(1);
     }
   } catch (error) {
-    console.error("Error:", error);
+    console.debug("Error:", error);
   } finally {
     // Kill the server process
     serverProcess.kill();
@@ -211,6 +211,6 @@ async function deleteProject(client: Client, args: string[]) {
 
 // Run the main function
 main().catch(error => {
-  console.error("Unhandled error:", error);
+  console.debug("Unhandled error:", error);
   process.exit(1);
 });

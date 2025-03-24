@@ -19,8 +19,8 @@ const ASANA_BASE_URL = 'https://app.asana.com/api/1.0';
 let ASANA_ACCESS_TOKEN = process.env.ASANA_ACCESS_TOKEN;
 
 if (!ASANA_ACCESS_TOKEN) {
-  console.error('Error: No Asana access token found.');
-  console.error('Please set your ASANA_ACCESS_TOKEN in your .env file.');
+  console.debug('Error: No Asana access token found.');
+  console.debug('Please set your ASANA_ACCESS_TOKEN in your .env file.');
   process.exit(1);
 }
 
@@ -55,12 +55,12 @@ async function listWorkspaces() {
     console.log('\nTotal workspaces:', workspaces.length);
   } catch (err) {
     if (err.response) {
-      console.error('Error fetching workspaces:', err.response.status, err.response.statusText);
-      console.error('Error details:', JSON.stringify(err.response.data, null, 2));
+      console.debug('Error fetching workspaces:', err.response.status, err.response.statusText);
+      console.debug('Error details:', JSON.stringify(err.response.data, null, 2));
     } else if (err.request) {
-      console.error('Error: No response received from Asana API');
+      console.debug('Error: No response received from Asana API');
     } else {
-      console.error('Error:', err.message);
+      console.debug('Error:', err.message);
     }
   }
 }

@@ -66,7 +66,7 @@ switch (command) {
     };
     break;
   default:
-    console.error(`Unknown command: ${command}`);
+    console.debug(`Unknown command: ${command}`);
     process.exit(1);
 }
 
@@ -94,8 +94,8 @@ rl.on('line', (line) => {
       server.kill();
       process.exit(0);
     } else if (data.type === 'error' && data.id === id) {
-      console.error('Received error:');
-      console.error(JSON.stringify(data, null, 2));
+      console.debug('Received error:');
+      console.debug(JSON.stringify(data, null, 2));
       server.kill();
       process.exit(1);
     } else {
@@ -108,7 +108,7 @@ rl.on('line', (line) => {
 });
 
 server.stderr.on('data', (data) => {
-  console.error('Server error:', data.toString());
+  console.debug('Server error:', data.toString());
 });
 
 // Wait for server to initialize

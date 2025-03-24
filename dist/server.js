@@ -6,17 +6,23 @@ import { fileURLToPath } from "url";
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// Setup custom logging to ensure stdout is only used for MCP JSON messages
+// Override console.log to use stderr instead of stdout
+const originalConsoleLog = console.log;
+console.log = function (...args) {
+    console.debug(...args);
+};
 // Import the Asana API functions
 let asanaApi = null;
 async function loadAsanaApi() {
     try {
         // Import the ES module version of asana.js
         asanaApi = await import('../asana/index.js');
-        console.log("Asana API loaded successfully");
+        console.debug("Asana API loaded successfully");
     }
     catch (error) {
-        console.error("Error loading Asana API:", error.message);
-        console.log("Using stub implementations instead");
+        console.debug("Error loading Asana API:", error.message);
+        console.debug("Using stub implementations instead");
     }
 }
 // Create an MCP server
@@ -32,16 +38,16 @@ server.tool("create-task", {
     assignee: z.string().optional(),
     project: z.string().optional()
 }, async ({ name, description, dueDate, assignee, project }) => {
-    console.log(`Creating Asana task: ${name}`);
-    console.log(`Description: ${description || 'N/A'}`);
-    console.log(`Due Date: ${dueDate || 'N/A'}`);
-    console.log(`Assignee: ${assignee || 'N/A'}`);
-    console.log(`Project: ${project || 'N/A'}`);
+    console.debug(`Creating Asana task: ${name}`);
+    console.debug(`Description: ${description || 'N/A'}`);
+    console.debug(`Due Date: ${dueDate || 'N/A'}`);
+    console.debug(`Assignee: ${assignee || 'N/A'}`);
+    console.debug(`Project: ${project || 'N/A'}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
             const result = await asanaApi.createTask(name, description, dueDate, assignee, project);
-            console.log("Task created with ID:", result.data.gid);
+            console.debug("Task created with ID:", result.data.gid);
             return {
                 content: [{
                         type: "text",
@@ -60,7 +66,7 @@ server.tool("create-task", {
         }
     }
     catch (error) {
-        console.error("Error creating task:", error);
+        console.debug("Error creating task:", error);
         return {
             content: [{
                     type: "text",
@@ -73,15 +79,15 @@ server.tool("create-task", {
 server.tool("list-tasks", {
     projectId: z.string().optional()
 }, async ({ projectId }) => {
-    console.log("Listing Asana tasks");
+    console.debug("Listing Asana tasks");
     if (projectId) {
-        console.log(`For project: ${projectId}`);
+        console.debug(`For project: ${projectId}`);
     }
     try {
         if (asanaApi) {
             // Call the actual Asana API
             const result = await asanaApi.listTasks();
-            console.log(`Found ${result.data?.length || 0} tasks`);
+            console.debug(`Found ${result.data?.length || 0} tasks`);
             // Format tasks for display
             const taskList = result.data?.map((task) => {
                 return {
@@ -121,7 +127,7 @@ server.tool("list-tasks", {
         }
     }
     catch (error) {
-        console.error("Error listing tasks:", error);
+        console.debug("Error listing tasks:", error);
         return {
             content: [{
                     type: "text",
@@ -139,17 +145,17 @@ server.tool("update-task", {
     assignee: z.string().optional(),
     completed: z.boolean().optional()
 }, async ({ taskId, name, description, dueDate, assignee, completed }) => {
-    console.log(`Updating Asana task: ${taskId}`);
+    console.debug(`Updating Asana task: ${taskId}`);
     if (name)
-        console.log(`New name: ${name}`);
+        console.debug(`New name: ${name}`);
     if (description)
-        console.log(`New description: ${description}`);
+        console.debug(`New description: ${description}`);
     if (dueDate)
-        console.log(`New due date: ${dueDate}`);
+        console.debug(`New due date: ${dueDate}`);
     if (assignee)
-        console.log(`New assignee: ${assignee}`);
+        console.debug(`New assignee: ${assignee}`);
     if (completed !== undefined)
-        console.log(`Completed: ${completed}`);
+        console.debug(`Completed: ${completed}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
@@ -165,7 +171,7 @@ server.tool("update-task", {
             if (completed !== undefined)
                 updatedFields.completed = completed;
             const result = await asanaApi.updateTask(taskId, updatedFields);
-            console.log("Task updated successfully");
+            console.debug("Task updated successfully");
             return {
                 content: [{
                         type: "text",
@@ -184,7 +190,7 @@ server.tool("update-task", {
         }
     }
     catch (error) {
-        console.error("Error updating task:", error);
+        console.debug("Error updating task:", error);
         return {
             content: [{
                     type: "text",
@@ -197,12 +203,12 @@ server.tool("update-task", {
 server.tool("delete-task", {
     taskId: z.string()
 }, async ({ taskId }) => {
-    console.log(`Deleting task: ${taskId}`);
+    console.debug(`Deleting task: ${taskId}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
             await asanaApi.deleteTask(taskId);
-            console.log("Task deleted successfully");
+            console.debug("Task deleted successfully");
             return {
                 content: [
                     {
@@ -214,7 +220,7 @@ server.tool("delete-task", {
         }
         else {
             // Stub implementation
-            console.log("Using stub implementation for delete-task");
+            console.debug("Using stub implementation for delete-task");
             return {
                 content: [
                     {
@@ -226,7 +232,7 @@ server.tool("delete-task", {
         }
     }
     catch (error) {
-        console.error("Error deleting task:", error.message);
+        console.debug("Error deleting task:", error.message);
         return {
             content: [
                 {
@@ -242,17 +248,19 @@ server.tool("create-project", {
     name: z.string(),
     notes: z.string().optional(),
     color: z.string().optional(),
-    isPublic: z.boolean().optional()
-}, async ({ name, notes, color, isPublic }) => {
-    console.log(`Creating Asana project: ${name}`);
-    console.log(`Notes: ${notes || 'N/A'}`);
-    console.log(`Color: ${color || 'N/A'}`);
-    console.log(`Public: ${isPublic !== undefined ? isPublic : 'N/A'}`);
+    isPublic: z.boolean().optional(),
+    workspaceId: z.string().optional()
+}, async ({ name, notes, color, isPublic, workspaceId }) => {
+    console.debug(`Creating Asana project: ${name}`);
+    console.debug(`Notes: ${notes || 'N/A'}`);
+    console.debug(`Color: ${color || 'N/A'}`);
+    console.debug(`Public: ${isPublic !== undefined ? isPublic : 'N/A'}`);
+    console.debug(`Workspace ID: ${workspaceId || 'Using default from .env'}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
-            const result = await asanaApi.createProject(name, notes, color, isPublic);
-            console.log("Project created with ID:", result.data.gid);
+            const result = await asanaApi.createProject(name, notes, color, isPublic, workspaceId);
+            console.debug("Project created with ID:", result.data.gid);
             return {
                 content: [
                     {
@@ -264,7 +272,7 @@ server.tool("create-project", {
         }
         else {
             // Stub implementation
-            console.log("Using stub implementation for create-project");
+            console.debug("Using stub implementation for create-project");
             const projectId = Math.floor(Math.random() * 10000000000);
             return {
                 content: [
@@ -277,12 +285,12 @@ server.tool("create-project", {
         }
     }
     catch (error) {
-        console.error("Error creating project:", error.message);
+        console.debug("Error creating project:", error);
         return {
             content: [
                 {
                     type: "text",
-                    text: `Error creating project: ${error.message}`
+                    text: `Error creating project: ${error.message || error.error?.errors[0].message || 'Unknown error'}`
                 }
             ]
         };
@@ -292,12 +300,12 @@ server.tool("create-project", {
 server.tool("delete-project", {
     projectId: z.string()
 }, async ({ projectId }) => {
-    console.log(`Deleting project: ${projectId}`);
+    console.debug(`Deleting project: ${projectId}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
             await asanaApi.deleteProject(projectId);
-            console.log("Project deleted successfully");
+            console.debug("Project deleted successfully");
             return {
                 content: [
                     {
@@ -309,7 +317,7 @@ server.tool("delete-project", {
         }
         else {
             // Stub implementation
-            console.log("Using stub implementation for delete-project");
+            console.debug("Using stub implementation for delete-project");
             return {
                 content: [
                     {
@@ -321,7 +329,7 @@ server.tool("delete-project", {
         }
     }
     catch (error) {
-        console.error("Error deleting project:", error.message);
+        console.debug("Error deleting project:", error.message);
         return {
             content: [
                 {
@@ -336,12 +344,12 @@ server.tool("delete-project", {
 server.tool("list-projects", {
     workspaceId: z.string().optional().nullable()
 }, async ({ workspaceId }) => {
-    console.log(`Listing projects${workspaceId ? ` in workspace ${workspaceId}` : ''}`);
+    console.debug(`Listing projects${workspaceId ? ` in workspace ${workspaceId}` : ''}`);
     try {
         if (asanaApi) {
             // Call the actual Asana API
             const result = await asanaApi.listProjects(workspaceId);
-            console.log(`Found ${result.data?.length || 0} projects`);
+            console.debug(`Found ${result.data?.length || 0} projects`);
             // Format projects for display
             if (result.data && result.data.length > 0) {
                 // Create a markdown table
@@ -373,7 +381,7 @@ server.tool("list-projects", {
         }
         else {
             // Stub implementation
-            console.log("Using stub implementation for list-projects");
+            console.debug("Using stub implementation for list-projects");
             return {
                 content: [
                     {
@@ -385,7 +393,7 @@ server.tool("list-projects", {
         }
     }
     catch (error) {
-        console.error("Error listing projects:", error.message);
+        console.debug("Error listing projects:", error.message);
         return {
             content: [
                 {
@@ -404,20 +412,20 @@ async function startStdioServer() {
     process.stdin.on('data', (data) => {
         try {
             const message = JSON.parse(data.toString().trim());
-            console.error(`Received message: ${JSON.stringify(message)}`);
+            console.debug(`Received message: ${JSON.stringify(message)}`);
         }
         catch (error) {
-            console.error(`Error parsing message: ${error}`);
+            console.debug(`Error parsing message: ${error}`);
         }
     });
     await server.connect(transport);
-    console.log("MCP Asana server running with stdio transport");
-    console.log("Use tools: create-task, list-tasks, update-task, delete-task, create-project, list-projects, delete-project");
+    console.debug("MCP Asana server running with stdio transport");
+    console.debug("Use tools: create-task, list-tasks, update-task, delete-task, create-project, list-projects, delete-project");
 }
 // Determine which transport to use based on command-line arguments
 if (process.argv.includes("--http")) {
-    console.log("HTTP transport is not supported in this version due to compatibility issues.");
-    console.log("Please use stdio transport instead by running without the --http flag.");
+    console.debug("HTTP transport is not supported in this version due to compatibility issues.");
+    console.debug("Please use stdio transport instead by running without the --http flag.");
     process.exit(1);
 }
 else {

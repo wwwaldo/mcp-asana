@@ -20,31 +20,31 @@ let WORKSPACE_ID = process.env.ASANA_WORKSPACE_ID;
 
 // Log configuration source
 if (ASANA_ACCESS_TOKEN) {
-  console.log('Using Asana token from environment variables');
+  console.debug('Using Asana token from environment variables');
 }
 
 if (PROJECT_ID) {
-  console.log(`Using project ID from environment variables: ${PROJECT_ID}`);
+  console.debug(`Using project ID from environment variables: ${PROJECT_ID}`);
 }
 
 if (WORKSPACE_ID) {
-  console.log(`Using workspace ID from environment variables: ${WORKSPACE_ID}`);
+  console.debug(`Using workspace ID from environment variables: ${WORKSPACE_ID}`);
 }
 
 // Default values if not provided
 if (!PROJECT_ID) {
-  console.warn('No project ID specified. Some task operations may fail without a project ID.');
+  console.debug('No project ID specified. Some task operations may fail without a project ID.');
   PROJECT_ID = null;
 }
 
 if (!WORKSPACE_ID) {
-  console.warn('No workspace ID specified. Some project operations may fail without a workspace ID.');
+  console.debug('No workspace ID specified. Some project operations may fail without a workspace ID.');
   WORKSPACE_ID = null;
 }
 
 // Validate token
 if (!ASANA_ACCESS_TOKEN) {
-  console.error('Error: No Asana access token found. Please set ASANA_ACCESS_TOKEN in your .env file.');
+  console.debug('Error: No Asana access token found. Please set ASANA_ACCESS_TOKEN in your .env file.');
   // Don't exit here, as this would prevent the server from starting with stub implementations
 }
 

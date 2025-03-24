@@ -27,7 +27,7 @@ async function createClient() {
         return client;
     }
     catch (error) {
-        console.error("Failed to connect to the server:", error);
+        console.debug("Failed to connect to the server:", error);
         process.exit(1);
     }
 }
@@ -58,7 +58,7 @@ program
         process.exit(0);
     }
     catch (error) {
-        console.error("Error:", error);
+        console.debug("Error:", error);
         process.exit(1);
     }
 });
@@ -91,7 +91,7 @@ program
         process.exit(0);
     }
     catch (error) {
-        console.error("Error:", error);
+        console.debug("Error:", error);
         process.exit(1);
     }
 });
@@ -114,7 +114,38 @@ program
         process.exit(0);
     }
     catch (error) {
-        console.error("Error:", error);
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
+// Command to create a project
+program
+    .command("create-project")
+    .description("Create a new Asana project")
+    .requiredOption("--name <n>", "Name of the project")
+    .option("--notes <notes>", "Notes for the project")
+    .option("--color <color>", "Color for the project")
+    .option("--is-public <isPublic>", "Whether the project is public", (value) => value === "true")
+    .option("--workspace-id <workspaceId>", "Workspace ID for the project")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        console.log("Creating project...");
+        const result = await client.callTool({
+            name: "create-project",
+            arguments: {
+                name: options.name,
+                notes: options.notes,
+                color: options.color,
+                isPublic: options.isPublic,
+                workspaceId: options.workspaceId
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
         process.exit(1);
     }
 });

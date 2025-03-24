@@ -20,8 +20,8 @@ let ASANA_ACCESS_TOKEN = process.env.ASANA_ACCESS_TOKEN;
 let WORKSPACE_ID = process.env.ASANA_WORKSPACE_ID;
 
 if (!ASANA_ACCESS_TOKEN) {
-  console.error('Error: No Asana access token found.');
-  console.error('Please set your ASANA_ACCESS_TOKEN in your .env file.');
+  console.debug('Error: No Asana access token found.');
+  console.debug('Please set your ASANA_ACCESS_TOKEN in your .env file.');
   process.exit(1);
 }
 
@@ -53,7 +53,7 @@ async function listAllProjects() {
         WORKSPACE_ID = workspaces[0].gid;
         console.log(`\nUsing workspace ID: ${WORKSPACE_ID} (${workspaces[0].name})`);
       } else {
-        console.error('No workspaces found. Please create a workspace in Asana first.');
+        console.debug('No workspaces found. Please create a workspace in Asana first.');
         process.exit(1);
       }
     }
@@ -73,13 +73,13 @@ async function listAllProjects() {
 
     return response.data;
   } catch (error) {
-    console.error('Error listing projects:', error.response?.data || error.message);
+    console.debug('Error listing projects:', error.response?.data || error.message);
     throw error;
   }
 }
 
 // Run the function
 listAllProjects().catch((error) => {
-  console.error('Failed to list projects:', error);
+  console.debug('Failed to list projects:', error);
   process.exit(1);
 });
