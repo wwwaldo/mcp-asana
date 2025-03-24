@@ -206,7 +206,7 @@ program
 // Command to add dependencies to a task
 program
     .command("add-dependencies")
-    .description("Add dependencies to a task in Asana")
+    .description("Add dependencies to a task in Asana (REQUIRES PREMIUM ASANA ACCOUNT)")
     .requiredOption("--task-id <taskId>", "ID of the task to add dependencies to")
     .requiredOption("--dependency-ids <dependencyIds>", "Comma-separated list of task IDs that the task depends on")
     .action(async (options) => {
@@ -233,7 +233,7 @@ program
 // Command to remove dependencies from a task
 program
     .command("remove-dependencies")
-    .description("Remove dependencies from a task in Asana")
+    .description("Remove dependencies from a task in Asana (REQUIRES PREMIUM ASANA ACCOUNT)")
     .requiredOption("--task-id <taskId>", "ID of the task to remove dependencies from")
     .requiredOption("--dependency-ids <dependencyIds>", "Comma-separated list of task IDs to remove as dependencies")
     .action(async (options) => {
@@ -260,7 +260,7 @@ program
 // Command to get dependencies for a task
 program
     .command("get-dependencies")
-    .description("Get dependencies for a task in Asana")
+    .description("Get dependencies for a task in Asana (REQUIRES PREMIUM ASANA ACCOUNT)")
     .requiredOption("--task-id <taskId>", "ID of the task to get dependencies for")
     .action(async (options) => {
     try {
@@ -270,6 +270,29 @@ program
             name: "get-dependencies",
             arguments: {
                 taskId: options.taskId
+            }
+        });
+        console.log("Result:", JSON.stringify(result, null, 2));
+        process.exit(0);
+    }
+    catch (error) {
+        console.debug("Error:", error);
+        process.exit(1);
+    }
+});
+// Command to list tasks in a project
+program
+    .command("list-tasks")
+    .description("List tasks in an Asana project")
+    .requiredOption("--project-id <projectId>", "ID of the project to list tasks from")
+    .action(async (options) => {
+    try {
+        const client = await createClient();
+        console.log("Listing tasks in project...");
+        const result = await client.callTool({
+            name: "list-tasks",
+            arguments: {
+                projectId: options.projectId
             }
         });
         console.log("Result:", JSON.stringify(result, null, 2));

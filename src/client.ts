@@ -49,6 +49,10 @@ interface DependencyOptions {
   dependencyIds?: string;
 }
 
+interface ListTasksOptions {
+  projectId: string;
+}
+
 // Create a command-line program
 const program = new Command();
 
@@ -344,6 +348,31 @@ program
         name: "get-dependencies",
         arguments: {
           taskId: options.taskId
+        }
+      });
+      
+      console.log("Result:", JSON.stringify(result, null, 2));
+      process.exit(0);
+    } catch (error) {
+      console.debug("Error:", error);
+      process.exit(1);
+    }
+  });
+
+// Command to list tasks in a project
+program
+  .command("list-tasks")
+  .description("List tasks in an Asana project")
+  .requiredOption("--project-id <projectId>", "ID of the project to list tasks from")
+  .action(async (options: ListTasksOptions) => {
+    try {
+      const client = await createClient();
+      
+      console.log("Listing tasks in project...");
+      const result = await client.callTool({
+        name: "list-tasks",
+        arguments: {
+          projectId: options.projectId
         }
       });
       

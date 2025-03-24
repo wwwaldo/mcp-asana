@@ -86,7 +86,7 @@ server.tool("list-tasks", {
     try {
         if (asanaApi) {
             // Call the actual Asana API
-            const result = await asanaApi.listTasks();
+            const result = await asanaApi.listTasks(projectId);
             console.debug(`Found ${result.data?.length || 0} tasks`);
             // Format tasks for display
             const taskList = result.data?.map((task) => {
